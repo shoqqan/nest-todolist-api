@@ -9,6 +9,6 @@ export class CreateTaskDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(10, { message: 'Title must be shorter than 10 characters' })
+  @MaxLength(20, { message: 'title must be shorter than 20 characters' })
   title: string;
 }

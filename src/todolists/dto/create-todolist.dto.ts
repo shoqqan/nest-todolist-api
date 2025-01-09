@@ -5,7 +5,7 @@ export class CreateTodolistDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  @MaxLength(10, { message: 'Title must be shorter than 10 characters' })
+  @MaxLength(20, { message: 'title must be shorter than 10 characters' })
   title: string;
 }
 
