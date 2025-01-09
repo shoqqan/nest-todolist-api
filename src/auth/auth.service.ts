@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -33,13 +34,17 @@ export class AuthService {
     };
   }
   async register(createUserDto: CreateUserDto) {
-    const hashPass = await bcrypt.hash(createUserDto.password, 10);
+    const { password, name } = createUserDto;
+    const hashPass = await bcrypt.hash(password, 10);
+    const user = await this.prismaService.user.findFirst({ where: { name } });
+    if (user) {
+      throw new ConflictException();
+    }
     await this.prismaService.user.create({
       data: {
         ...createUserDto,
         password: hashPass,
       },
     });
-    return createUserDto;
   }
 }
