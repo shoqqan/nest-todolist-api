@@ -1,20 +1,27 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { SignInDto } from './dto/sign-in.dto';
-import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly usersService: UsersService,
+    private readonly prismaService: PrismaService,
   ) {}
 
   async login(dto: SignInDto) {
     const { name, password } = dto;
-    const user = await this.usersService.findOne(name);
+    const user = await this.prismaService.user.findFirst({ where: { name } });
+    if (!user) {
+      throw new NotFoundException();
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new UnauthorizedException();
@@ -27,9 +34,11 @@ export class AuthService {
   }
   async register(createUserDto: CreateUserDto) {
     const hashPass = await bcrypt.hash(createUserDto.password, 10);
-    this.usersService.create({
-      ...createUserDto,
-      password: hashPass,
+    await this.prismaService.user.create({
+      data: {
+        ...createUserDto,
+        password: hashPass,
+      },
     });
     return createUserDto;
   }
